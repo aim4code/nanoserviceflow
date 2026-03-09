@@ -1,0 +1,10 @@
+{
+    "name": "Aim4code.Nanor3dux.Editor",
+    "references": [
+      "Aim4code.Nanor3dux"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

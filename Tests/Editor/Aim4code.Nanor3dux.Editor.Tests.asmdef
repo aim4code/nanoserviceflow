@@ -1,0 +1,14 @@
+{
+    "name": "Aim4code.Nanor3dux.Editor.Tests",
+    "references": [
+        "Aim4code.Nanor3dux.Editor",
+        "Aim4code.Nanor3dux"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

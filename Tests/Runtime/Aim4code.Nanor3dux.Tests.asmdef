@@ -1,0 +1,11 @@
+{
+    "name": "Aim4code.Nanor3dux.Tests",
+    "references": [
+        "Aim4code.Nanor3dux"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}
