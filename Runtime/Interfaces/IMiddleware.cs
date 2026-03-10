@@ -1,5 +1,5 @@
 ﻿// ============================================================================
-// Copyright (c) 2026 aim4code
+// Copyright (c) 2026 Daniel Conde Linares
 // Licensed under the MIT License. See LICENSE file in the project root.
 // ============================================================================
 using System;
