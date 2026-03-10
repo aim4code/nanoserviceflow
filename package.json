@@ -2,8 +2,8 @@
 	"name": "com.aim4code.nanoserviceflow",
 	"version": "0.1.0",
 	"displayName":"NanoServiceFlow",
-	"description": "Replace this with your own description of the package. \n\nFor best results, use this text to summarize: \n\u25AA What the package does \n\u25AA How it can benefit the user \n\nNote: Special formatting characters are supported, including line breaks ('\\n') and bullets ('\\u25AA').",
-	"unity": "6000.3",
+	"description": "A lightweight, Zustand-inspired, zero-dependency state management and event-driven architecture for modern Unity.\n\nKey Features:\n\u25AA True zero-allocation Unidirectional Data Flow\n\u25AA Built-in Dependency Injection & automated Action routing\n\u25AA Custom GC-free ReactiveProperty<T>\n\u25AA Extensible Middleware pipeline for logging and analytics\n\u25AA 100% agnostic async side-effects (Tasks, Coroutines, UniTask)",
+	"unity": "2022.3",
 	"keywords": [
 		"zustand",
 		"redux",
@@ -20,8 +20,5 @@
 		"name": "Daniel Conde Linares",
 		"url": "https://www.aim4code.com",
 		"email": "hi@aim4code.com"
-	},
-	"changelogUrl": "https://example.com/changelog.html",
-	"documentationUrl": "https://example.com/",
-	"licensesUrl": "https://example.com/licensing.html"
+	}
 }

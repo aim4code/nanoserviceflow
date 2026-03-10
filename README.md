@@ -1,7 +1,7 @@
 # NanoServiceFlow
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
-NanoServiceFlow is a micro-framework designed to bring the predictability of Redux and the pragmatic, modular state slices of Zustand into Unity without the massive boilerplate. Built entirely on modern C# 12, it provides a blazing-fast, GC-friendly state management solution with absolutely zero external dependencies.
+NanoServiceFlow is a micro-framework designed to bring the predictability of Redux and the pragmatic, modular state slices of Zustand into Unity without the massive boilerplate. Built entirely on modern C# (C# 9.0 compliant), it provides a blazing-fast, GC-friendly state management solution with absolutely zero external dependencies, ready for enterprise Unity LTS versions.
 
 ## Key Features
 * **Zustand / Redux Inspired:** State is read-only and mutated exclusively by dispatching `Actions`. No massive global store—state is sliced into domain-specific modules.
@@ -21,7 +21,7 @@ Add the following dependency to your `Packages/manifest.json`:
 ## Quick Start
 
 ### 1. Define Pure Data (State) & Actions
-Use the built-in `ReactiveProperty` for state, and C# records for immutable, zero-allocation actions.
+Use the built-in `ReactiveProperty` for state, and standard C# structs for immutable, zero-allocation actions.
 ```csharp
 using Aim4code.NanoServiceFlow;
 
@@ -29,8 +29,12 @@ public class PlayerState {
     public ReactiveProperty<int> Health { get; } = new(100);
 }
 
-public record struct DamageAction(int Amount) : IAction;
-public record struct HealSequenceAction() : IAction;
+public readonly struct DamageAction : IAction {
+    public readonly int Amount;
+    public DamageAction(int amount) => Amount = amount;
+}
+
+public readonly struct HealSequenceAction : IAction {}
 ```
 
 ### 2. Create a Service (Logic)
@@ -39,15 +43,21 @@ Services handle both synchronous state mutations (`[Reducer]`) and asynchronous 
 using System.Threading.Tasks;
 using Aim4code.NanoServiceFlow;
 
-public class PlayerService(PlayerState state) : IInitializable {
+public class PlayerService : IInitializable {
     
+    private readonly PlayerState _state;
+
+    public PlayerService(PlayerState state) {
+        _state = state;
+    }
+
     public void Initialize() {
         // Optional: Run setup logic during Phase 2 Boot
     }
 
     [Reducer]
     public void OnDamage(DamageAction action) {
-        state.Health.Value -= action.Amount;
+        _state.Health.Value -= action.Amount;
     }
 
     // Note: The framework is async-agnostic. Standard Tasks are used here, 
