@@ -111,6 +111,34 @@ public class PlayerView : MonoBehaviour {
 }
 ```
 
+### 5. Middleware Pipeline (Optional)
+NanoServiceFlow supports a robust middleware pipeline, allowing you to intercept actions globally before they reach your Reducers or Side Effects. This is perfect for logging, analytics, or action filtering.
+
+First, implement the `IMiddleware` interface:
+```csharp
+using System;
+using UnityEngine;
+using Aim4code.NanoServiceFlow;
+
+public class LoggingMiddleware : IMiddleware 
+{
+    public void Invoke(IAction action, Action<IAction> next) 
+    {
+        Debug.Log($"[Dispatcher] Action Started: {action.GetType().Name}");
+        
+        // Pass the action to the next middleware, or to the handlers if this is the last one
+        next(action); 
+        
+        Debug.Log($"[Dispatcher] Action Finished: {action.GetType().Name}");
+    }
+}
+```
+
+Then, register it to the `ServiceLocator` during your boot phase. Middlewares are executed in the exact order they are added.
+```csharp
+ServiceLocator.AddMiddleware(new LoggingMiddleware());
+```
+
 ## Architectural Philosophy
 NanoServiceFlow diverges from traditional Redux by embracing **Composition over Inheritance**. Instead of a single global store, state is segregated into modular classes. The `ServiceLocator` acts as a **Mediator**, intercepting dispatched actions and routing them to the correct `[Reducer]` or `[SideEffect]`. This ensures high testability, true decoupling, and an architecture that scales cleanly as your codebase grows.
 
