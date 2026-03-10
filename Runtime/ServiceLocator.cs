@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Aim4code.NanoR3dux
+namespace Aim4code.NanoServiceFlow
 {
     public static class ServiceLocator
     {

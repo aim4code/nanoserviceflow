@@ -4,7 +4,7 @@
 // ============================================================================
 using System;
 
-namespace Aim4code.NanoR3dux
+namespace Aim4code.NanoServiceFlow
 { 
     // A delegate representing the next step in the pipeline
     public delegate void NextActionDelegate(IAction action);

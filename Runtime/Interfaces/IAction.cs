@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root.
 // ============================================================================
 
-namespace Aim4code.NanoR3dux
+namespace Aim4code.NanoServiceFlow
 {
     public interface IAction { }
 }

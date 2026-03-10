@@ -1,10 +1,18 @@
 {
-	"name": "com.aim4code.nanor3dux",
-	"displayName":"NanoR3dux",
+	"name": "com.aim4code.nanoserviceflow",
 	"version": "0.1.0",
-	"unity": "6000.3",
-	"unityRelease": "6f1",
+	"displayName":"NanoServiceFlow",
 	"description": "Replace this with your own description of the package. \n\nFor best results, use this text to summarize: \n\u25AA What the package does \n\u25AA How it can benefit the user \n\nNote: Special formatting characters are supported, including line breaks ('\\n') and bullets ('\\u25AA').",
+	"unity": "6000.3",
+	"keywords": [
+		"zustand",
+		"redux",
+		"cqrs",
+		"reactive",
+		"state-management",
+		"architecture",
+		"di"
+	],
 	"dependencies": {
 		"com.unity.test-framework": "1.6.0"
 	},

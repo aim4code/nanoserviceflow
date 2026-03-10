@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Aim4code.NanoR3dux
+namespace Aim4code.NanoServiceFlow
 {
     public class ReactiveProperty<T>
     {

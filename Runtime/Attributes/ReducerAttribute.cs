@@ -4,7 +4,7 @@
 // ============================================================================
 using System;
 
-namespace Aim4code.NanoR3dux
+namespace Aim4code.NanoServiceFlow
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class ReducerAttribute : Attribute { }
