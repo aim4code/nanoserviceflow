@@ -1,5 +1,5 @@
 # NanoServiceFlow
-![Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)
+[![Unit Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
 NanoServiceFlow is a micro-framework designed to bring the predictability of Redux and the pragmatic, modular state slices of Zustand into Unity without the massive boilerplate. Built entirely on modern C# (C# 9.0 compliant), it provides a blazing-fast, GC-friendly state management solution with absolutely zero external dependencies, ready for enterprise Unity LTS versions.
