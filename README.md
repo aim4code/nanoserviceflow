@@ -1,7 +1,11 @@
 # NanoServiceFlow
+[![Unit Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
 NanoServiceFlow is a micro-framework designed to bring the predictability of Redux and the pragmatic, modular state slices of Zustand into Unity without the massive boilerplate. Built entirely on modern C# (C# 9.0 compliant), it provides a blazing-fast, GC-friendly state management solution with absolutely zero external dependencies, ready for enterprise Unity LTS versions.
+
+> [!NOTE]
+> **A Note on C# Compatibility:** While NanoServiceFlow is designed for modern Unity, the codebase is currently strictly **C# 9.0 compliant**. This is a deliberate choice for developer experience (DX). Currently, Unity's `.csproj` generation pipeline (particularly for isolated test assemblies) still defaults to C# 9.0, which causes IDE errors for users trying to use modern syntax out-of-the-box. Once Unity's project generation fully and natively supports the C# 12 pipeline across all contexts without requiring custom compiler overrides, this framework will be updated to leverage cleaner modern features like C# 10 `record struct` and C# 12 primary constructors.
 
 ## Key Features
 * **Zustand / Redux Inspired:** State is read-only and mutated exclusively by dispatching `Actions`. No massive global store—state is sliced into domain-specific modules.
