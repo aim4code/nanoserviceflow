@@ -1,4 +1,6 @@
 # NanoServiceFlow
+<img src="Documentation~\images\Logo.png" width="600">
+
 [![Unit Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
