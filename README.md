@@ -1,7 +1,10 @@
 # NanoServiceFlow
 <img src="Documentation~\images\Logo.png" width="600">
 
-[![Unit Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
+[![Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
+[![openupm](https://img.shields.io/npm/v/com.aim4code.nanoserviceflow?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.aim4code.nanoserviceflow/)
+![](https://img.shields.io/badge/Unity-2022.3+-57b9d3.svg?style=flat&logo=unity)
+
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
 NanoServiceFlow is a micro-framework designed to bring the predictability of Redux and the pragmatic, modular state slices of Zustand into Unity without the massive boilerplate. Built entirely on modern C# (C# 9.0 compliant), it provides a blazing-fast, GC-friendly state management solution with absolutely zero external dependencies, ready for enterprise Unity LTS versions.
@@ -16,13 +19,43 @@ NanoServiceFlow is a micro-framework designed to bring the predictability of Red
 * **Agnostic Asynchronous Side-Effects:** Safely handle asynchronous logic using your preferred method. The framework routes actions perfectly whether you use standard .NET `Task`, Unity Coroutines, or highly-optimized third-party libraries like `UniTask`.
 * **Zero Boilerplate DI:** Features a lightweight, interface-driven Dependency Injection container that resolves services and wires up Reducers automatically via reflection caching.
 
-## Installation (Unity Package Manager)
-Add the following dependency to your `Packages/manifest.json`:
+## Installation
+
+### Option 1: Install via OpenUPM (Recommended)
+The package is available on the [OpenUPM](https://openupm.com/) registry. The easiest way to install it is via the `openupm-cli`:
+```bash
+openupm add com.aim4code.nanoserviceflow
+```
+
+Alternatively, you can manually add the scoped registry to your `Packages/manifest.json`:
 ```json
+"scopedRegistries": [
+  {
+    "name": "package.openupm.com",
+    "url": "https://package.openupm.com",
+    "scopes": [
+      "com.aim4code"
+    ]
+  }
+],
 "dependencies": {
-  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git"
+  "com.aim4code.nanoserviceflow": "0.2.0"
 }
 ```
+
+### Option 2: Install via Git URL
+You can also install the package directly from GitHub. Add the following dependency to your `Packages/manifest.json`:
+
+```json
+"dependencies": {
+  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git#v0.2.0"
+}
+```
+
+> [!IMPORTANT]
+> **Version Determinism:** Notice the `#v0.2.0` at the end of the URL. If you omit the version tag, Unity will resolve the dependency using the latest commit on the default branch at the time of checkout. As the branch updates, this can lead to team members having different versions of the package installed, breaking version determinism. Always lock your Git dependencies to a specific release tag.
+> 
+> *See Unity's official documentation on [Targeting a specific revision](https://docs.unity3d.com/Manual/upm-git.html#revision) for more details.*
 
 ## Quick Start
 
