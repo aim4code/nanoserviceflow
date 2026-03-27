@@ -5,6 +5,8 @@
 [![Tests](https://github.com/aim4code/nanoserviceflow/actions/workflows/tests.yml/badge.svg)](https://github.com/aim4code/nanoserviceflow/actions)
 [![openupm](https://img.shields.io/npm/v/com.aim4code.nanoserviceflow?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.aim4code.nanoserviceflow/)
 ![](https://img.shields.io/badge/Unity-2022.3+-57b9d3.svg?style=flat&logo=unity)
+![last-commit](https://img.shields.io/github/last-commit/aim4code/nanoserviceflow)
+![open-issues](https://img.shields.io/github/issues/aim4code/nanoserviceflow)
 
 > **A lightweight, Zustand-inspired, true zero-dependency state management and event-driven architecture for modern Unity.**
 
