@@ -14,11 +14,11 @@
 		"di"
 	],
 	"dependencies": {
-		"com.unity.test-framework": "1.6.0"
+		"com.unity.test-framework": "1.4.6"
 	},
 	"author": {
-		"name": "Daniel Conde Linares",
-		"url": "https://www.aim4code.com",
-		"email": "hi@aim4code.com"
-	}
+		"name": "aim4code",
+		"url": "https://github.com/aim4code"
+	},
+	"license": "MIT"
 }
