@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 - `CI`: updated GitHub Actions workflow for unit tests.
 - `Docs`: updated installation options in README.
 - `Docs`: minor format adaptations in README.
+- `Package`: downgraded `com.unity.test-framework` dependency to v1.4.6 for Unity 2022.3 LTS compatibility.
 
 ### Added
 
