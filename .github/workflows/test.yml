@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Test
 
 on:
   push:
@@ -6,9 +6,14 @@ on:
   pull_request:
 
 jobs:
-  run-tests:
-    name: Run Unit Tests
+  test:
+    name: Run Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        unityVersion:
+        - 2022.3.62f3
+        - 6000.3.6f1
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,5 +36,5 @@ jobs:
         with:
           projectPath: TempPackage # Point to the newly created temporary folder
           packageMode: true        # Tells GameCI to generate a host project automatically
-          unityVersion: 6000.3.6f1 # MUST be explicitly set; 'auto' does not work in packageMode
+          unityVersion: ${{ matrix.unityVersion }} # MUST be explicitly set; 'auto' does not work in packageMode
           githubToken: ${{ secrets.GITHUB_TOKEN }}
