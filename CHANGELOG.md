@@ -1,16 +1,31 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http.keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-03-27
+
+### Changed
+
+- `CI`: updated GitHub Actions workflow for unit tests.
+- `Docs`: updated installation options in README.
+- `Docs`: minor format adaptations in README.
+
+### Added
+
+- `Docs`: added new repository badges in README.
+
 ## [0.2.0] - 2026-03-20
 
 ### Changed
+
 - `CI`: updated tests workflow trigger conditions.
 - `CI`: updated github tests workflow name.
 
 ### Added
+
 - `CI`: added github tests workflow.
 - `Docs`: added c# compatibility remark to README.
 - `Docs`: added tests status badge to README.
@@ -22,6 +37,7 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 Initial release of the NanoServiceFlow micro-framework, providing a true zero-dependency, allocation-free Unidirectional Data Flow architecture for modern Unity.
 
 ### Added
+
 - `ServiceLocator` core container for lightweight dependency injection and automated action routing.
 - `ReactiveProperty<T>` primitive for zero-allocation, GC-friendly state observation with built-in `DistinctUntilChanged` evaluation.
 - `IAction` interface to enforce strict, predictable data flow.
