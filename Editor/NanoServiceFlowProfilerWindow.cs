@@ -43,7 +43,6 @@ namespace Aim4code.NanoServiceFlow.Editor
             ServiceLocator.OnDispatchStart += HandleDispatchStart;
             
             EditorApplication.update += PerformUpdate;
-            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         private void OnDisable()
@@ -54,20 +53,13 @@ namespace Aim4code.NanoServiceFlow.Editor
             ServiceLocator.OnDispatchStart -= HandleDispatchStart;
             
             EditorApplication.update -= PerformUpdate;
-            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-        }
-
-        private void OnPlayModeStateChanged(PlayModeStateChange state)
-        {
-            // Clear profiler when leaving play mode to not hold stale data
-            if (state == PlayModeStateChange.ExitingPlayMode || state == PlayModeStateChange.EnteredEditMode)
-            {
-                HandleStateCleared();
-            }
         }
 
         private void PerformUpdate()
         {
+            // Freeze UI updates if not currently playing (preserves the post-run state so you can inspect it natively)
+            if (!EditorApplication.isPlaying && !EditorApplication.isPaused) return;
+
             // Update live values every second to not spam reflection
             if (EditorApplication.timeSinceStartup > _nextPollTime)
             {
@@ -126,10 +118,9 @@ namespace Aim4code.NanoServiceFlow.Editor
 
             var controls = new VisualElement { style = { flexDirection = FlexDirection.Row, marginBottom = 5 } };
             var clearBtn = new Button(() => {
-                _loggedActions.Clear();
-                _actionsList.Clear();
-                _actionDetailsText.text = "Select an action to view details.";
-            }) { text = "Clear Logs" };
+                ServiceLocator.ClearAll(); // Natively flushes static states
+                HandleStateCleared();
+            }) { text = "Clear All" };
             controls.Add(clearBtn);
             timelineArea.Add(controls);
 
