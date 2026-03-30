@@ -37,20 +37,33 @@ namespace Aim4code.NanoServiceFlow.Editor
 
         private void OnEnable()
         {
+            ServiceLocator.EditorIsProfilerActive = true;
             ServiceLocator.OnStateRegistered += HandleStateChange;
             ServiceLocator.OnStateCleared += HandleStateCleared;
             ServiceLocator.OnDispatchStart += HandleDispatchStart;
             
             EditorApplication.update += PerformUpdate;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         private void OnDisable()
         {
+            ServiceLocator.EditorIsProfilerActive = false;
             ServiceLocator.OnStateRegistered -= HandleStateChange;
             ServiceLocator.OnStateCleared -= HandleStateCleared;
             ServiceLocator.OnDispatchStart -= HandleDispatchStart;
             
             EditorApplication.update -= PerformUpdate;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            // Clear profiler when leaving play mode to not hold stale data
+            if (state == PlayModeStateChange.ExitingPlayMode || state == PlayModeStateChange.EnteredEditMode)
+            {
+                HandleStateCleared();
+            }
         }
 
         private void PerformUpdate()

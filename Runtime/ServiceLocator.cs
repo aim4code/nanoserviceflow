@@ -73,14 +73,20 @@ namespace Aim4code.NanoServiceFlow
         public static void Dispatch<TAction>(TAction action) where TAction : IAction
         {
 #if UNITY_EDITOR
-            var stackTrace = new System.Diagnostics.StackTrace(1, true);
-            EditorNotifyDispatchStart(action, stackTrace);
+            if (EditorIsProfilerActive)
+            {
+                var stackTrace = new System.Diagnostics.StackTrace(1, true);
+                EditorNotifyDispatchStart(action, stackTrace);
+            }
 #endif
             // Start the action through the middleware pipeline
             ExecuteMiddleware(0, action);
             
 #if UNITY_EDITOR
-            EditorNotifyDispatchEnd(action);
+            if (EditorIsProfilerActive)
+            {
+                EditorNotifyDispatchEnd(action);
+            }
 #endif
         }
 
@@ -184,6 +190,7 @@ namespace Aim4code.NanoServiceFlow
 
         private static readonly Dictionary<Type, List<EditorHandlerInfo>> _editorActionHandlers = new();
 
+        public static bool EditorIsProfilerActive { get; set; }
         public static IReadOnlyDictionary<Type, object> Container => _container;
         public static IReadOnlyList<IMiddleware> Middlewares => _middlewares;
         public static IReadOnlyDictionary<Type, List<EditorHandlerInfo>> EditorActionHandlers => _editorActionHandlers;
