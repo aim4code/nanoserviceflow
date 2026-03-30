@@ -17,10 +17,13 @@ namespace Aim4code.NanoServiceFlow
         
         // Middleware Pipeline
         private static readonly List<IMiddleware> _middlewares = new();
-
+        
         public static void RegisterState<T>(T stateInstance) where T : class
         {
             _container[typeof(T)] = stateInstance;
+#if UNITY_EDITOR
+            EditorNotifyStateRegistered(typeof(T), stateInstance);
+#endif
         }
         
         public static void RegisterService<T>() where T : class
@@ -44,6 +47,9 @@ namespace Aim4code.NanoServiceFlow
             _container[type] = instance;
             
             RegisterHandlers(instance);
+#if UNITY_EDITOR
+            EditorNotifyStateRegistered(type, instance);
+#endif
         }
 
         public static T Get<T>() => (T)_container[typeof(T)];
@@ -66,8 +72,16 @@ namespace Aim4code.NanoServiceFlow
 
         public static void Dispatch<TAction>(TAction action) where TAction : IAction
         {
+#if UNITY_EDITOR
+            var stackTrace = new System.Diagnostics.StackTrace(1, true);
+            EditorNotifyDispatchStart(action, stackTrace);
+#endif
             // Start the action through the middleware pipeline
             ExecuteMiddleware(0, action);
+            
+#if UNITY_EDITOR
+            EditorNotifyDispatchEnd(action);
+#endif
         }
 
         private static void ExecuteMiddleware(int index, IAction action)
@@ -102,8 +116,9 @@ namespace Aim4code.NanoServiceFlow
 
             foreach (var method in methods)
             {
-                bool isHandler = method.GetCustomAttribute<ReducerAttribute>() != null || 
-                                 method.GetCustomAttribute<SideEffectAttribute>() != null;
+                bool isReducer = method.GetCustomAttribute<ReducerAttribute>() != null;
+                bool isSideEffect = method.GetCustomAttribute<SideEffectAttribute>() != null;
+                bool isHandler = isReducer || isSideEffect;
 
                 if (isHandler)
                 {
@@ -119,6 +134,21 @@ namespace Aim4code.NanoServiceFlow
                         }
 
                         list.Add(action => method.Invoke(service, new[] { action }));
+                        
+#if UNITY_EDITOR
+                        if (!_editorActionHandlers.TryGetValue(actionType, out var editorList))
+                        {
+                            editorList = new List<EditorHandlerInfo>();
+                            _editorActionHandlers[actionType] = editorList;
+                        }
+                        
+                        editorList.Add(new EditorHandlerInfo 
+                        { 
+                            Target = service, 
+                            Method = method, 
+                            IsReducer = isReducer 
+                        });
+#endif
                     }
                 }
             }
@@ -132,6 +162,56 @@ namespace Aim4code.NanoServiceFlow
             _container.Clear();
             _actionHandlers.Clear();
             _middlewares.Clear();
+            
+#if UNITY_EDITOR
+            _editorActionHandlers.Clear();
+            EditorNotifyStateCleared();
+#endif
         }
+
+#if UNITY_EDITOR
+        // ============================================================================
+        // EDITOR PROFILER LOGIC
+        // This region is purely for the NanoServiceFlow Profiler Tool
+        // ============================================================================
+        
+        public struct EditorHandlerInfo
+        {
+            public object Target;
+            public MethodInfo Method;
+            public bool IsReducer;
+        }
+
+        private static readonly Dictionary<Type, List<EditorHandlerInfo>> _editorActionHandlers = new();
+
+        public static IReadOnlyDictionary<Type, object> Container => _container;
+        public static IReadOnlyList<IMiddleware> Middlewares => _middlewares;
+        public static IReadOnlyDictionary<Type, List<EditorHandlerInfo>> EditorActionHandlers => _editorActionHandlers;
+
+        public static event Action<Type, object> OnStateRegistered;
+        public static event Action OnStateCleared;
+        public static event Action<IAction, System.Diagnostics.StackTrace> OnDispatchStart;
+        public static event Action<IAction> OnDispatchEnd;
+
+        private static void EditorNotifyStateRegistered(Type type, object instance)
+        {
+            OnStateRegistered?.Invoke(type, instance);
+        }
+        
+        private static void EditorNotifyStateCleared()
+        {
+            OnStateCleared?.Invoke();
+        }
+
+        private static void EditorNotifyDispatchStart(IAction action, System.Diagnostics.StackTrace trace)
+        {
+            OnDispatchStart?.Invoke(action, trace);
+        }
+
+        private static void EditorNotifyDispatchEnd(IAction action)
+        {
+            OnDispatchEnd?.Invoke(action);
+        }
+#endif
     }
 }
