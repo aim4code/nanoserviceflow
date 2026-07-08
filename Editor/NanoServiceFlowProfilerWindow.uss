@@ -1,0 +1,130 @@
+/* Root Layout */
+.container {
+    flex-direction: row;
+    flex-grow: 1;
+    background-color: var(--unity-colors-window-background);
+}
+
+/* Panels */
+.pane {
+    flex-direction: column;
+    padding: 10px;
+}
+
+.left-pane {
+    flex-grow: 1;
+    width: 30%;
+    border-right-width: 1px;
+    border-right-color: var(--unity-colors-app_toolbar_button-border);
+}
+
+.right-pane {
+    flex-grow: 1;
+    width: 70%;
+    flex-direction: column;
+}
+
+.timeline-area {
+    flex-grow: 2;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--unity-colors-app_toolbar_button-border);
+    padding-bottom: 5px;
+}
+
+.details-area {
+    flex-grow: 1;
+    padding-top: 5px;
+    min-height: 150px;
+}
+
+/* Typography */
+.header {
+    -unity-font-style: bold;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--unity-colors-label-text);
+}
+
+.sub-header {
+    -unity-font-style: bold;
+    font-size: 12px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    color: var(--unity-colors-label-text);
+}
+
+/* ScrollViews */
+.scroll-view {
+    flex-grow: 1;
+    border-color: var(--unity-colors-default-border);
+    border-width: 1px;
+    background-color: var(--unity-colors-box-background);
+    padding: 5px;
+}
+
+/* Service Item */
+.service-item {
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.service-title {
+    -unity-font-style: bold;
+    color: #4CAF50; /* Green highlight for services */
+    margin-bottom: 2px;
+}
+
+.service-field {
+    flex-direction: row;
+    margin-left: 10px;
+    font-size: 11px;
+}
+
+.service-field-name {
+    color: #9E9E9E;
+    width: 120px;
+}
+
+.service-field-value {
+    color: #E0E0E0;
+    flex-grow: 1;
+    white-space: normal;
+}
+
+/* Action History Item */
+.action-item {
+    padding: 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255,255,255,0.1);
+    cursor: link;
+    flex-direction: row;
+}
+
+.action-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.action-item.selected {
+    background-color: var(--unity-colors-highlight-background);
+}
+
+.action-time {
+    color: #888;
+    width: 65px;
+    margin-right: 8px;
+    font-size: 10px;
+}
+
+.action-name {
+    -unity-font-style: bold;
+    color: #64B5F6; /* Blue for actions */
+    flex-grow: 1;
+}
+
+.details-text {
+    font-size: 11px;
+    color: #CCC;
+    white-space: normal;
+}

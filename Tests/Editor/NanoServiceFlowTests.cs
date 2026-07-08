@@ -98,6 +98,50 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
         }
 
         [Test]
+        public void RegisterService_CalledTwice_DoesNotDoubleInvokeReducer()
+        {
+            // Arrange: register once, then again to simulate a scene re-entry
+            // (e.g. game -> menu -> game) hitting the same RegisterService call.
+            var state = new MockState();
+            ServiceLocator.RegisterState(state);
+            ServiceLocator.RegisterService<MockService>();
+            ServiceLocator.RegisterService<MockService>();
+
+            // Act
+            ServiceLocator.Dispatch(new AddScoreAction(10));
+
+            // Assert
+            Assert.AreEqual(10, state.Score.Value,
+                "Re-registering a service must replace its handlers, not append a duplicate set.");
+        }
+
+        [Test]
+        public void UnregisterService_RemovesHandlers_AndContainerEntry()
+        {
+            // Arrange
+            var state = new MockState();
+            ServiceLocator.RegisterState(state);
+            ServiceLocator.RegisterService<MockService>();
+
+            // Act
+            ServiceLocator.UnregisterService<MockService>();
+            ServiceLocator.Dispatch(new AddScoreAction(10));
+
+            // Assert
+            Assert.IsFalse(ServiceLocator.IsRegistered<MockService>(),
+                "Service should no longer be registered after UnregisterService.");
+            Assert.AreEqual(0, state.Score.Value,
+                "An unregistered service must not receive dispatched actions.");
+        }
+
+        [Test]
+        public void UnregisterService_WhenNotRegistered_IsNoOp()
+        {
+            // Should not throw when nothing is registered for the type.
+            Assert.DoesNotThrow(() => ServiceLocator.UnregisterService<MockService>());
+        }
+
+        [Test]
         public void ReactiveProperty_TriggersCallback_WhenValueChanges()
         {
             // Arrange
