@@ -5,6 +5,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http.keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `ServiceLocator`: `RegisterService<T>` is now idempotent — re-registering a service replaces the previous instance and its handlers instead of appending a duplicate set. This prevents reducers from firing multiple times after a scene re-entry.
+
+### Added
+
+- `ServiceLocator.UnregisterService<T>()` / `UnregisterState<T>()`: remove a registration and any action handlers it owns (enables scene-scoped teardown).
+- `ServiceLocator.IsRegistered<T>()`: query whether a type is currently registered.
+- `ServiceLocator`: automatic static-state reset on `SubsystemRegistration`, so registrations no longer leak between play sessions when domain reload is disabled ("Enter Play Mode Options").
+- `Tests`: coverage for idempotent re-registration and unregistration.
+
 ## [0.2.1] - 2026-03-27
 
 ### Changed

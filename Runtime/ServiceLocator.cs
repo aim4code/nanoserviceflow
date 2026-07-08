@@ -11,13 +11,43 @@ namespace Aim4code.NanoServiceFlow
 {
     public static partial class ServiceLocator
     {
+        /// <summary>
+        /// A single dispatch target plus the instance that owns it, so handlers
+        /// can be removed when their owning service is unregistered/replaced.
+        /// </summary>
+        private readonly struct HandlerEntry
+        {
+            public readonly object Owner;
+            public readonly Action<IAction> Invoke;
+
+            public HandlerEntry(object owner, Action<IAction> invoke)
+            {
+                Owner = owner;
+                Invoke = invoke;
+            }
+        }
+
         // State & Handlers
         private static readonly Dictionary<Type, object> _container = new();
-        private static readonly Dictionary<Type, List<Action<IAction>>> _actionHandlers = new();
-        
+        private static readonly Dictionary<Type, List<HandlerEntry>> _actionHandlers = new();
+
         // Middleware Pipeline
         private static readonly List<IMiddleware> _middlewares = new();
-        
+
+        /// <summary>
+        /// Resets all static state at the start of every play session. This runs even
+        /// when "Enter Play Mode Options" disables domain reload, so the locator never
+        /// leaks registrations between play sessions in the editor.
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            ClearAll();
+        }
+
+        /// <summary>True if an instance of <typeparamref name="T"/> is currently registered.</summary>
+        public static bool IsRegistered<T>() => _container.ContainsKey(typeof(T));
+
         public static void RegisterState<T>(T stateInstance) where T : class
         {
             _container[typeof(T)] = stateInstance;
@@ -25,10 +55,18 @@ namespace Aim4code.NanoServiceFlow
             EditorNotifyStateRegistered(typeof(T), stateInstance);
 #endif
         }
-        
+
         public static void RegisterService<T>() where T : class
         {
             Type type = typeof(T);
+
+            // Idempotent registration: re-registering replaces the previous instance and
+            // drops its handlers instead of appending a second set. Without this, a scene
+            // re-entry (e.g. game -> menu -> game) would register the service twice and
+            // every dispatched action would fire each reducer twice.
+            if (_container.ContainsKey(type))
+                Unregister(type);
+
             var constructor = type.GetConstructors().FirstOrDefault() ?? throw new Exception($"No public constructor found for {type.Name}");
 
             var parameters = constructor.GetParameters();
@@ -111,7 +149,7 @@ namespace Aim4code.NanoServiceFlow
             {
                 foreach (var handler in handlers)
                 {
-                    handler(action);
+                    handler.Invoke(action);
                 }
             }
         }
@@ -135,11 +173,11 @@ namespace Aim4code.NanoServiceFlow
                         
                         if (!_actionHandlers.TryGetValue(actionType, out var list))
                         {
-                            list = new List<Action<IAction>>();
+                            list = new List<HandlerEntry>();
                             _actionHandlers[actionType] = list;
                         }
 
-                        list.Add(action => method.Invoke(service, new[] { action }));
+                        list.Add(new HandlerEntry(service, action => method.Invoke(service, new[] { action })));
                         
 #if UNITY_EDITOR
                         if (!_editorActionHandlers.TryGetValue(actionType, out var editorList))
@@ -160,6 +198,34 @@ namespace Aim4code.NanoServiceFlow
             }
         }
         
+        /// <summary>
+        /// Removes a registered service (or state) and any action handlers it owns.
+        /// Safe to call when nothing is registered for the type.
+        /// </summary>
+        public static void UnregisterService<T>() where T : class => Unregister(typeof(T));
+
+        /// <summary>
+        /// Removes a registered state. States hold no handlers, so this only clears
+        /// the container entry. Provided for symmetry with <see cref="UnregisterService{T}"/>.
+        /// </summary>
+        public static void UnregisterState<T>() where T : class => Unregister(typeof(T));
+
+        private static void Unregister(Type type)
+        {
+            if (!_container.TryGetValue(type, out var instance))
+                return;
+
+            _container.Remove(type);
+
+            foreach (var handlers in _actionHandlers.Values)
+                handlers.RemoveAll(h => ReferenceEquals(h.Owner, instance));
+
+#if UNITY_EDITOR
+            foreach (var handlers in _editorActionHandlers.Values)
+                handlers.RemoveAll(h => ReferenceEquals(h.Target, instance));
+#endif
+        }
+
         /// <summary>
         /// Helper for testing/resetting state
         /// </summary>
