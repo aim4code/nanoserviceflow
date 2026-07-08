@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-09
+
 ### Fixed
 
 - `ServiceLocator`: `RegisterService<T>` is now idempotent — re-registering a service replaces the previous instance and its handlers instead of appending a duplicate set. This prevents reducers from firing multiple times after a scene re-entry.
