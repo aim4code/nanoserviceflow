@@ -94,7 +94,7 @@ Services handle both synchronous state mutations (`[Reducer]`) and asynchronous 
 using System.Threading.Tasks;
 using Aim4code.NanoServiceFlow;
 
-public class PlayerService : IInitializable {
+public class PlayerService : IInitializable, System.IDisposable {
     
     private readonly PlayerState _state;
 
@@ -104,6 +104,12 @@ public class PlayerService : IInitializable {
 
     public void Initialize() {
         // Optional: Run setup logic during Phase 2 Boot
+    }
+
+    public void Dispose() {
+        // Optional: symmetric teardown. Called automatically when the service is
+        // unregistered, replaced by a re-registration, or cleared via ClearAll() —
+        // the place to unsubscribe from external events acquired in Initialize().
     }
 
     [Reducer]

@@ -4,7 +4,10 @@
 // ============================================================================
 
 using System;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Aim4code.NanoServiceFlow.Tests.Editor
 {
@@ -42,6 +45,20 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
             {
                 _state.Score.Value += action.Amount;
             }
+        }
+
+        public class DisposableMockService : IInitializable, IDisposable
+        {
+            public bool WasInitialized { get; private set; }
+            public int DisposeCount { get; private set; }
+
+            public void Initialize() => WasInitialized = true;
+            public void Dispose() => DisposeCount++;
+        }
+
+        public class ThrowingDisposableService : IDisposable
+        {
+            public void Dispose() => throw new InvalidOperationException("boom");
         }
 
         [TearDown]
@@ -139,6 +156,68 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
         {
             // Should not throw when nothing is registered for the type.
             Assert.DoesNotThrow(() => ServiceLocator.UnregisterService<MockService>());
+        }
+
+        [Test]
+        public void UnregisterService_DisposesService()
+        {
+            // Arrange
+            ServiceLocator.RegisterService<DisposableMockService>();
+            var service = ServiceLocator.Get<DisposableMockService>();
+
+            // Act
+            ServiceLocator.UnregisterService<DisposableMockService>();
+
+            // Assert
+            Assert.AreEqual(1, service.DisposeCount,
+                "Unregistering an IDisposable service should dispose it exactly once.");
+        }
+
+        [Test]
+        public void RegisterService_CalledTwice_DisposesPreviousInstance()
+        {
+            // Arrange: registering again (e.g. a scene re-entry) replaces the instance.
+            ServiceLocator.RegisterService<DisposableMockService>();
+            var first = ServiceLocator.Get<DisposableMockService>();
+
+            // Act
+            ServiceLocator.RegisterService<DisposableMockService>();
+            var second = ServiceLocator.Get<DisposableMockService>();
+
+            // Assert
+            Assert.AreEqual(1, first.DisposeCount,
+                "Re-registering must dispose the previous instance so it can release its subscriptions.");
+            Assert.AreNotSame(first, second, "Re-registering should create a fresh instance.");
+            Assert.AreEqual(0, second.DisposeCount, "The current instance must not be disposed.");
+        }
+
+        [Test]
+        public void ClearAll_DisposesRegisteredInstances()
+        {
+            // Arrange
+            ServiceLocator.RegisterService<DisposableMockService>();
+            var service = ServiceLocator.Get<DisposableMockService>();
+
+            // Act
+            ServiceLocator.ClearAll();
+
+            // Assert
+            Assert.AreEqual(1, service.DisposeCount,
+                "ClearAll should dispose every IDisposable instance before clearing the container.");
+        }
+
+        [Test]
+        public void Dispose_ThatThrows_IsLoggedAndDoesNotAbortTeardown()
+        {
+            // Arrange
+            ServiceLocator.RegisterService<ThrowingDisposableService>();
+            LogAssert.Expect(LogType.Exception, new Regex("boom"));
+
+            // Act & Assert
+            Assert.DoesNotThrow(() => ServiceLocator.UnregisterService<ThrowingDisposableService>(),
+                "A throwing Dispose must be swallowed, not propagated to the caller.");
+            Assert.IsFalse(ServiceLocator.IsRegistered<ThrowingDisposableService>(),
+                "The instance must still be removed even if its Dispose threw.");
         }
 
         [Test]
