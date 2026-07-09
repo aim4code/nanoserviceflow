@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-10
+
 ### Added
 
 - `ServiceLocator`: services and states implementing `IDisposable` are now disposed when they are unregistered, replaced by a re-registration, or cleared via `ClearAll()`. This pairs with `IInitializable` to give registrations a symmetric setup/teardown lifecycle — e.g. a service can unsubscribe from an external event in `Dispose()` without leaking across scene re-entries. Disposal is exception-safe: a throwing `Dispose()` is logged and never aborts the surrounding teardown.
