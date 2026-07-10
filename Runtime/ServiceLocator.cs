@@ -224,6 +224,11 @@ namespace Aim4code.NanoServiceFlow
             foreach (var handlers in _editorActionHandlers.Values)
                 handlers.RemoveAll(h => ReferenceEquals(h.Target, instance));
 #endif
+
+            // Symmetric teardown: give the instance a chance to release what Initialize()
+            // acquired (e.g. subscriptions to external events) so re-registration or
+            // scene-scoped unregistration does not leak.
+            TryDispose(instance);
         }
 
         /// <summary>
@@ -231,14 +236,38 @@ namespace Aim4code.NanoServiceFlow
         /// </summary>
         public static void ClearAll()
         {
+            // Dispose before clearing so IDisposable services/states can tear down cleanly.
+            // Snapshot first: a Dispose() implementation may touch the locator.
+            foreach (var instance in new List<object>(_container.Values))
+                TryDispose(instance);
+
             _container.Clear();
             _actionHandlers.Clear();
             _middlewares.Clear();
-            
+
 #if UNITY_EDITOR
             _editorActionHandlers.Clear();
             EditorNotifyStateCleared();
 #endif
+        }
+
+        /// <summary>
+        /// Disposes an instance if it implements <see cref="IDisposable"/>. Exception-safe:
+        /// a throwing Dispose is logged and never aborts the surrounding teardown.
+        /// </summary>
+        private static void TryDispose(object instance)
+        {
+            if (instance is IDisposable disposable)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogException(e);
+                }
+            }
         }
 
 

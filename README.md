@@ -46,7 +46,7 @@ Alternatively, you can manually add the scoped registry to your `Packages/manife
   }
 ],
 "dependencies": {
-  "com.aim4code.nanoserviceflow": "0.3.0"
+  "com.aim4code.nanoserviceflow": "0.4.0"
 }
 ```
 
@@ -56,12 +56,12 @@ You can also install the package directly from GitHub. Add the following depende
 
 ```json
 "dependencies": {
-  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git#v0.3.0"
+  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git#v0.4.0"
 }
 ```
 
 > [!IMPORTANT]
-> **Version Determinism:** Notice the `#v0.3.0` at the end of the URL. If you omit the version tag, Unity will resolve the dependency using the latest commit on the default branch at the time of checkout. As the branch updates, this can lead to team members having different versions of the package installed, breaking version determinism. Always lock your Git dependencies to a specific release tag.
+> **Version Determinism:** Notice the `#v0.4.0` at the end of the URL. If you omit the version tag, Unity will resolve the dependency using the latest commit on the default branch at the time of checkout. As the branch updates, this can lead to team members having different versions of the package installed, breaking version determinism. Always lock your Git dependencies to a specific release tag.
 >
 > *See Unity's official documentation on [Targeting a specific revision](https://docs.unity3d.com/Manual/upm-git.html#revision) for more details.*
 
@@ -94,7 +94,7 @@ Services handle both synchronous state mutations (`[Reducer]`) and asynchronous 
 using System.Threading.Tasks;
 using Aim4code.NanoServiceFlow;
 
-public class PlayerService : IInitializable {
+public class PlayerService : IInitializable, System.IDisposable {
     
     private readonly PlayerState _state;
 
@@ -104,6 +104,12 @@ public class PlayerService : IInitializable {
 
     public void Initialize() {
         // Optional: Run setup logic during Phase 2 Boot
+    }
+
+    public void Dispose() {
+        // Optional: symmetric teardown. Called automatically when the service is
+        // unregistered, replaced by a re-registration, or cleared via ClearAll() —
+        // the place to unsubscribe from external events acquired in Initialize().
     }
 
     [Reducer]
