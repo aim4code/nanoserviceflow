@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-07-10
+
+### Fixed
+
+- `ServiceLocator.InitializeAll()` now initializes each instance at most once, even when called repeatedly (a per-scene bootstrap typically calls it on every scene load). Previously a persistent `IInitializable` had its `Initialize()` re-invoked on every call, so a service that acquired a resource there (e.g. an event subscription) would stack duplicates. The tracking is kept in sync on unregister/`ClearAll`, so a re-registered instance is still initialized afresh. This makes `Initialize()`/`Dispose()` a clean once-each lifecycle — services no longer need a manual guard.
+
 ## [0.4.0] - 2026-07-10
 
 ### Added

@@ -31,6 +31,11 @@ namespace Aim4code.NanoServiceFlow
         private static readonly Dictionary<Type, object> _container = new();
         private static readonly Dictionary<Type, List<HandlerEntry>> _actionHandlers = new();
 
+        // Instances already initialized, so InitializeAll() runs each Initialize() at most
+        // once even when called repeatedly (e.g. once per scene load). Kept in sync on
+        // unregister/clear so a re-registered instance is initialized afresh.
+        private static readonly HashSet<object> _initializedInstances = new();
+
         // Middleware Pipeline
         private static readonly List<IMiddleware> _middlewares = new();
 
@@ -92,11 +97,18 @@ namespace Aim4code.NanoServiceFlow
 
         public static T Get<T>() => (T)_container[typeof(T)];
 
+        /// <summary>
+        /// Initializes every registered <see cref="IInitializable"/> that has not been
+        /// initialized yet. Idempotent: callers (e.g. a per-scene bootstrap) can invoke this
+        /// on every scene load to pick up newly registered services without re-initializing
+        /// the ones that persist, so a service may safely acquire resources (event
+        /// subscriptions, etc.) in <c>Initialize()</c> without stacking them.
+        /// </summary>
         public static void InitializeAll()
         {
             foreach (var instance in _container.Values)
             {
-                if (instance is IInitializable initializable)
+                if (instance is IInitializable initializable && _initializedInstances.Add(instance))
                 {
                     initializable.Initialize();
                 }
@@ -216,6 +228,7 @@ namespace Aim4code.NanoServiceFlow
                 return;
 
             _container.Remove(type);
+            _initializedInstances.Remove(instance);
 
             foreach (var handlers in _actionHandlers.Values)
                 handlers.RemoveAll(h => ReferenceEquals(h.Owner, instance));
@@ -244,6 +257,7 @@ namespace Aim4code.NanoServiceFlow
             _container.Clear();
             _actionHandlers.Clear();
             _middlewares.Clear();
+            _initializedInstances.Clear();
 
 #if UNITY_EDITOR
             _editorActionHandlers.Clear();

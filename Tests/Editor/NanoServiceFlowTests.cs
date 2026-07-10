@@ -49,10 +49,11 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
 
         public class DisposableMockService : IInitializable, IDisposable
         {
-            public bool WasInitialized { get; private set; }
+            public int InitializeCount { get; private set; }
             public int DisposeCount { get; private set; }
+            public bool WasInitialized => InitializeCount > 0;
 
-            public void Initialize() => WasInitialized = true;
+            public void Initialize() => InitializeCount++;
             public void Dispose() => DisposeCount++;
         }
 
@@ -156,6 +157,39 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
         {
             // Should not throw when nothing is registered for the type.
             Assert.DoesNotThrow(() => ServiceLocator.UnregisterService<MockService>());
+        }
+
+        [Test]
+        public void InitializeAll_CalledRepeatedly_InitializesEachInstanceOnce()
+        {
+            // Arrange
+            ServiceLocator.RegisterService<DisposableMockService>();
+
+            // Act: a per-scene bootstrap calls InitializeAll() on every scene load.
+            ServiceLocator.InitializeAll();
+            ServiceLocator.InitializeAll();
+            ServiceLocator.InitializeAll();
+
+            // Assert
+            Assert.AreEqual(1, ServiceLocator.Get<DisposableMockService>().InitializeCount,
+                "A persistent service must be initialized once, not once per InitializeAll() call.");
+        }
+
+        [Test]
+        public void InitializeAll_AfterReRegistration_InitializesTheFreshInstance()
+        {
+            // Arrange: initialize, then re-register (replaces with a new instance).
+            ServiceLocator.RegisterService<DisposableMockService>();
+            ServiceLocator.InitializeAll();
+            ServiceLocator.RegisterService<DisposableMockService>();
+            var fresh = ServiceLocator.Get<DisposableMockService>();
+
+            // Act
+            ServiceLocator.InitializeAll();
+
+            // Assert
+            Assert.AreEqual(1, fresh.InitializeCount,
+                "A re-registered instance is a new object and must be initialized exactly once.");
         }
 
         [Test]
