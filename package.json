@@ -2,7 +2,7 @@
 	"name": "com.aim4code.nanoserviceflow",
 	"version": "0.5.1",
 	"displayName":"NanoServiceFlow",
-	"description": "A lightweight, Zustand-inspired, zero-dependency state management and event-driven architecture for modern Unity.\n\nKey Features:\n\u25AA True zero-allocation Unidirectional Data Flow\n\u25AA Built-in Dependency Injection & automated Action routing\n\u25AA Custom GC-free ReactiveProperty<T>\n\u25AA Extensible Middleware pipeline for logging and analytics\n\u25AA 100% agnostic async side-effects (Tasks, Coroutines, UniTask)",
+	"description": "A lightweight, Zustand-inspired state management and event-driven architecture for modern Unity, with no third-party dependencies.\n\nKey Features:\n\u25AA Unidirectional Data Flow with reducers and side-effects\n\u25AA Built-in constructor injection & automated Action routing\n\u25AA ReactiveProperty<T> with allocation-free updates, plus ReactiveSignal<T> for one-shot events\n\u25AA Extensible Middleware pipeline for logging and analytics\n\u25AA Async-agnostic side-effects (Task, UniTask)",
 	"unity": "2022.3",
 	"keywords": [
 		"zustand",

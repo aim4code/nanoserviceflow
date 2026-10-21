@@ -2,10 +2,24 @@
 
 All notable changes to this package will be documented in this file.
 
-The format is based on [Keep a Changelog](http.keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- `Docs`: the README, `package.json` description and CONTRIBUTING now describe the code as it is. Claims that the code didn't back were reworded: "zero-allocation", "GC-free", "interface-driven DI via reflection caching", "read-only state", "zero dependencies" and Coroutine support. No behavior changed.
+- `Docs`: new README sections: API Overview, How Dispatch Works (accepted handler signatures, exact-type matching, ordering, exceptions), Async Side-Effects and Errors (`Task`, UniTask with the `async UniTaskVoid` advice, coroutines), Performance Notes, and Flow Profiler, including a warning that its **Clear All** button calls `ServiceLocator.ClearAll()`.
+- `Docs`: CONTRIBUTING states the real minimum Unity version (2022.3) and how to run the package tests.
+- `Docs`: the README logo path uses forward slashes.
+- `Docs`: added the 0.3.0 entries for the Profiler window and its Editor hooks, which shipped without a CHANGELOG line.
+- `Docs`: fixed the Keep a Changelog and Semantic Versioning links.
+- `ReactiveProperty<T>`: XML docs. The Profiler window gains the license header and loses a stray note left in a comment.
+
+### Added
+
+- `.github`: Bug Report and Feature Request issue templates, as referenced by CONTRIBUTING.
 
 ## [0.5.1] - 2026-10-21
 
@@ -49,6 +63,8 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 - `ServiceLocator.UnregisterService<T>()` / `UnregisterState<T>()`: remove a registration and any action handlers it owns (enables scene-scoped teardown).
 - `ServiceLocator.IsRegistered<T>()`: query whether a type is currently registered.
+- `Editor`: the NanoServiceFlow Profiler window (`Aim4code > NanoServiceFlow Profiler`). It shows the registered services and states with their public values, and a timeline of dispatched actions with each action's payload, origin stack trace, handlers and active middlewares. *(Entry added in 0.5.2; it shipped in 0.3.0 without one.)*
+- `ServiceLocator`: Editor-only hooks used by the profiler (`EditorIsProfilerActive`, `Container`, `Middlewares`, `EditorActionHandlers`, and the `OnStateRegistered`, `OnStateCleared`, `OnDispatchStart` and `OnDispatchEnd` events). They are compiled only in the Editor. *(Entry added in 0.5.2.)*
 - `ServiceLocator`: automatic static-state reset on `SubsystemRegistration`, so registrations no longer leak between play sessions when domain reload is disabled ("Enter Play Mode Options").
 - `Tests`: coverage for idempotent re-registration and unregistration.
 

@@ -1,3 +1,7 @@
+// ============================================================================
+// Copyright (c) 2026 Daniel Conde Linares
+// Licensed under the MIT License. See LICENSE file in the project root.
+// ============================================================================
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -278,8 +282,7 @@ namespace Aim4code.NanoServiceFlow.Editor
                 sb.AppendLine("  (No middlewares)");
             }
 
-            // Using rich text for Label in UIElements is slightly restricted, but in generic texts it renders some tags if enableRichText is true (but its property doesn't exist plainly, though text format allows markdown-like or nothing). Wait, rich text works when enableRichText=true? But Label doesn't support full colors. Actually Unity UI Toolkit Label rich text is restricted without style override, so we just use plain text!
-            // I should strip the <color> tags or leave them. Let's just use plain text to be safe in Editor UI Toolkit.
+            // The details Label is shown as plain text, so turn the color tags into "=== Header ===" markers.
             sb.Replace("<color=#B9F6CA>", "=== ").Replace("</color>", " ===");
             sb.Replace("<color=#FFCC80>", "=== ").Replace("<color=#80DEEA>", "=== ").Replace("<color=#CE93D8>", "=== ");
             
