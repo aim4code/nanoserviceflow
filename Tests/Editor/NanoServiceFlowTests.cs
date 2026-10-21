@@ -282,5 +282,79 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
             // Cleanup
             subscription.Dispose();
         }
+
+        [Test]
+        public void ReactiveSignal_FiresOnEveryPublish_EvenWithTheSameValue()
+        {
+            var signal = new ReactiveSignal<int>();
+            int count = 0, last = 0;
+            var subscription = signal.Subscribe(value => { count++; last = value; });
+
+            signal.Publish(2);
+            signal.Publish(2);
+
+            Assert.AreEqual(2, count, "A signal is not distinct-until-changed: two hits of 2 are two events.");
+            Assert.AreEqual(2, last);
+            subscription.Dispose();
+        }
+
+        [Test]
+        public void ReactiveSignal_DoesNotReplayOnSubscribe()
+        {
+            var signal = new ReactiveSignal<int>();
+            signal.Publish(7);
+
+            int count = 0;
+            var subscription = signal.Subscribe(_ => count++);
+
+            Assert.AreEqual(0, count, "Past events are not replayed to new subscribers.");
+            subscription.Dispose();
+        }
+
+        [Test]
+        public void ReactiveSignal_DisposeStopsDelivery_AndIsIdempotent()
+        {
+            var signal = new ReactiveSignal<int>();
+            int count = 0;
+            var subscription = signal.Subscribe(_ => count++);
+
+            signal.Publish(1);
+            subscription.Dispose();
+            subscription.Dispose();
+            signal.Publish(1);
+
+            Assert.AreEqual(1, count);
+        }
+
+        [Test]
+        public void ReactiveSignal_UnsubscribingDuringPublish_FinishesTheCurrentEvent()
+        {
+            var signal = new ReactiveSignal<int>();
+            int first = 0, second = 0;
+            IDisposable firstSubscription = null;
+            firstSubscription = signal.Subscribe(_ => { first++; firstSubscription.Dispose(); });
+            var secondSubscription = signal.Subscribe(_ => second++);
+
+            signal.Publish(1);
+            signal.Publish(1);
+
+            Assert.AreEqual(1, first, "A subscriber that leaves during an event is gone from the next one.");
+            Assert.AreEqual(2, second, "The others still receive both events.");
+            secondSubscription.Dispose();
+        }
+
+        [Test]
+        public void ReactiveSignal_WithoutPayload_FiresEachTime()
+        {
+            var signal = new ReactiveSignal();
+            int count = 0;
+            var subscription = signal.Subscribe(() => count++);
+
+            signal.Publish();
+            signal.Publish();
+
+            Assert.AreEqual(2, count);
+            subscription.Dispose();
+        }
     }
 }

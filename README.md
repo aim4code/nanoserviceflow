@@ -18,7 +18,7 @@ NanoServiceFlow is a micro-framework designed to bring the predictability of Red
 ## Key Features
 
 * **Zustand / Redux Inspired:** State is read-only and mutated exclusively by dispatching `Actions`. No massive global store—state is sliced into domain-specific modules.
-* **Zero-Allocation Reactivity:** Includes a custom, GC-free `ReactiveProperty<T>` built specifically for high-performance Unity games. No need for heavy Rx libraries.
+* **Zero-Allocation Reactivity:** Includes a custom, GC-free `ReactiveProperty<T>` built specifically for high-performance Unity games, plus `ReactiveSignal<T>` for one-shot events. No need for heavy Rx libraries.
 * **Service-Oriented CQRS:** Cleanly separate your data (State) from your logic (Services).
 * **Agnostic Asynchronous Side-Effects:** Safely handle asynchronous logic using your preferred method. The framework routes actions perfectly whether you use standard .NET `Task`, Unity Coroutines, or highly-optimized third-party libraries like `UniTask`.
 * **Zero Boilerplate DI:** Features a lightweight, interface-driven Dependency Injection container that resolves services and wires up Reducers automatically via reflection caching.
@@ -180,6 +180,21 @@ public class PlayerView : MonoBehaviour {
         _healthSub?.Dispose(); // Clean up subscription
     }
 }
+```
+
+#### Events vs. values: `ReactiveSignal<T>`
+
+`ReactiveProperty<T>` holds a value and only notifies when it *changes* — perfect for "health is 3", wrong for "the player was hit for 2" happening twice. For one-shot events use `ReactiveSignal<T>`: every `Publish` reaches every subscriber, and nothing is replayed on subscribe.
+
+```csharp
+public class CombatState
+{
+    public ReactiveProperty<int> Health { get; } = new(10);   // what is
+    public ReactiveSignal<int> PlayerHit { get; } = new();    // what just happened
+}
+
+// In a service:   _state.PlayerHit.Publish(damage);
+// In a view:      _hitSub = state.PlayerHit.Subscribe(damage => PlayHitEffect(damage));
 ```
 
 ### 5. Middleware Pipeline (Optional)

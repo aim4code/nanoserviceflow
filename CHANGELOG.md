@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-21
+
+### Added
+
+- `ReactiveSignal<T>` (and a payload-less `ReactiveSignal`): a stream of one-shot events. Every `Publish` reaches every subscriber — even when the payload equals the previous one — and nothing is stored or replayed on subscribe. It complements `ReactiveProperty<T>`, which is distinct-until-changed and so cannot express repeated events (two hits of the same damage, a heal, an effect firing again). Subscriptions are `IDisposable`, disposing twice is harmless, and a subscriber removed during a publish stops receiving from the next event on.
+- `Tests`: coverage for repeated payloads, no replay on subscribe, disposal, unsubscribing during a publish, and the payload-less signal.
+
 ## [0.4.1] - 2026-07-10
 
 ### Fixed
