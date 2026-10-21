@@ -46,7 +46,7 @@ Alternatively, you can manually add the scoped registry to your `Packages/manife
   }
 ],
 "dependencies": {
-  "com.aim4code.nanoserviceflow": "0.4.1"
+  "com.aim4code.nanoserviceflow": "0.5.1"
 }
 ```
 
@@ -56,12 +56,12 @@ You can also install the package directly from GitHub. Add the following depende
 
 ```json
 "dependencies": {
-  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git#v0.4.1"
+  "com.aim4code.nanoserviceflow": "https://github.com/aim4code/nanoserviceflow.git#v0.5.1"
 }
 ```
 
 > [!IMPORTANT]
-> **Version Determinism:** Notice the `#v0.4.1` at the end of the URL. If you omit the version tag, Unity will resolve the dependency using the latest commit on the default branch at the time of checkout. As the branch updates, this can lead to team members having different versions of the package installed, breaking version determinism. Always lock your Git dependencies to a specific release tag.
+> **Version Determinism:** Notice the `#v0.5.1` at the end of the URL. If you omit the version tag, Unity will resolve the dependency using the latest commit on the default branch at the time of checkout. As the branch updates, this can lead to team members having different versions of the package installed, breaking version determinism. Always lock your Git dependencies to a specific release tag.
 >
 > *See Unity's official documentation on [Targeting a specific revision](https://docs.unity3d.com/Manual/upm-git.html#revision) for more details.*
 
@@ -204,13 +204,12 @@ NanoServiceFlow supports a robust middleware pipeline, allowing you to intercept
 First, implement the `IMiddleware` interface:
 
 ```csharp
-using System;
 using UnityEngine;
 using Aim4code.NanoServiceFlow;
 
 public class LoggingMiddleware : IMiddleware 
 {
-    public void Invoke(IAction action, Action<IAction> next) 
+    public void Invoke(IAction action, NextActionDelegate next) 
     {
         Debug.Log($"[Dispatcher] Action Started: {action.GetType().Name}");
         

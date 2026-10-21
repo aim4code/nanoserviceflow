@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-21
+
+### Fixed
+
+- `ServiceLocator.RegisterState<T>()` now replaces a registration the same way `RegisterService<T>()` does: the previous instance is disposed and any handlers it owned are dropped. Previously a replaced `IDisposable` state was never disposed, contrary to the 0.4.0 notes, and registering a state over a service left that service's reducers firing. Re-registering the same instance is a no-op.
+- `ServiceLocator.RegisterService<T>()` resolves dependencies and constructs the new instance before tearing down the old one. A missing dependency or a throwing constructor now leaves the current registration intact instead of unregistering and disposing it.
+- Handlers that return a `Task` (e.g. an `async` `[SideEffect]`) have their exceptions logged with `Debug.LogException`. Previously a fault after the first `await` was lost in an unobserved task.
+- `ReactiveProperty<T>` subscriptions can be disposed twice safely. Previously the second `Dispose()` could remove another subscription that used the same delegate.
+- `ServiceLocator.Get<T>()` on an unregistered type throws a `KeyNotFoundException` that names the type and the call to make. The missing-dependency error of `RegisterService<T>()` also names the call to make.
+- `Docs`: the README middleware example now compiles (`NextActionDelegate` instead of `Action<IAction>`).
+- `Tests`: regression coverage for each fix above, plus `UnregisterState` and constructor injection of the registered instance.
+
 ## [0.5.0] - 2026-10-21
 
 ### Added
