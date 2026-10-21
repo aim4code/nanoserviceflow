@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-21
+
 ### Changed
 
 - `Docs`: the README, `package.json` description and CONTRIBUTING now describe the code as it is. Claims that the code didn't back were reworded: "zero-allocation", "GC-free", "interface-driven DI via reflection caching", "read-only state", "zero dependencies" and Coroutine support. No behavior changed.
