@@ -7,11 +7,21 @@ using System.Collections.Generic;
 
 namespace Aim4code.NanoServiceFlow
 {
+    /// <summary>
+    /// A value that notifies its subscribers when it changes (distinct-until-changed).
+    ///
+    /// Use it for <i>what is</i> ("health is 3"). For <i>what just happened</i>, including the same
+    /// event twice in a row, use <see cref="ReactiveSignal{T}"/>.
+    /// </summary>
     public class ReactiveProperty<T>
     {
         private T _value;
         private Action<T> _onValueChanged;
 
+        /// <summary>
+        /// The current value. Setting a different value notifies every subscriber; setting an equal
+        /// value (by <see cref="EqualityComparer{T}.Default"/>) does nothing.
+        /// </summary>
         public T Value
         {
             get => _value;
@@ -30,7 +40,11 @@ namespace Aim4code.NanoServiceFlow
             _value = initialValue;
         }
 
-        // Returns an IDisposable so you can easily un-subscribe
+        /// <summary>
+        /// Listen for changes. The callback runs immediately with the current value, then on every change.
+        /// Subscribers added or removed during a notification take effect from the next one.
+        /// Dispose the result to stop; disposing twice is harmless.
+        /// </summary>
         public IDisposable Subscribe(Action<T> callback)
         {
             _onValueChanged += callback;

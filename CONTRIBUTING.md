@@ -7,8 +7,8 @@ This document outlines the process, coding standards, and architectural philosop
 ## 1. Architectural Philosophy
 Before submitting a Pull Request, please ensure your changes align with the core pillars of this micro-framework:
 * **Zero Dependencies:** NanoServiceFlow must remain a standalone package. Do not introduce third-party libraries (e.g., UniRx, Zenject, or NuGet packages) into the core runtime.
-* **Zero Allocation:** The framework is designed for high-performance Unity games. Avoid introducing features that generate garbage collection (GC) overhead during runtime (e.g., avoid LINQ in the hot path, use `readonly struct` for actions).
-* **Unidirectional Data Flow:** State must remain immutable from the outside and only be modified via Reducers.
+* **Allocation-Conscious:** The framework is designed for Unity games. Don't add new garbage collection (GC) allocations to the dispatch or reactive update paths (e.g., avoid LINQ in the hot path, use `readonly struct` for actions).
+* **Unidirectional Data Flow:** By convention, state is only modified by Reducers. Views read state and dispatch actions; they never set it directly. The framework does not enforce this, so keep new APIs consistent with it.
 
 ## 2. Reporting Bugs
 If you find a bug, please open an Issue using the "Bug Report" template. Include:
@@ -24,7 +24,7 @@ Feature requests are welcome! Please open an Issue using the "Feature Request" t
 
 ## 4. Local Development Setup
 1. Clone the repository.
-2. Open the project in Unity (Minimum supported version is 6.3+).
+2. Add it to a Unity project (minimum supported version is 2022.3) as a local package, and list `com.aim4code.nanoserviceflow` under `"testables"` in that project's `Packages/manifest.json` so its tests appear in the Test Runner.
 3. Ensure your IDE is set up to compile against the Unity engine.
 
 ### Coding Standards
