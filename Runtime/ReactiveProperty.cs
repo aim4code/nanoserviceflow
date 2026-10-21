@@ -49,7 +49,7 @@ namespace Aim4code.NanoServiceFlow
         // --- Helper class to handle cleanups ---
         private class Subscription : IDisposable
         {
-            private readonly ReactiveProperty<T> _property;
+            private ReactiveProperty<T> _property;
             private readonly Action<T> _callback;
 
             public Subscription(ReactiveProperty<T> property, Action<T> callback)
@@ -60,7 +60,8 @@ namespace Aim4code.NanoServiceFlow
 
             public void Dispose()
             {
-                _property.Unsubscribe(_callback);
+                _property?.Unsubscribe(_callback);
+                _property = null;   // disposing twice is harmless
             }
         }
     }

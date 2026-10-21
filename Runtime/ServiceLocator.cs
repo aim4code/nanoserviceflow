@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Aim4code.NanoServiceFlow
 {
@@ -55,6 +56,11 @@ namespace Aim4code.NanoServiceFlow
 
         public static void RegisterState<T>(T stateInstance) where T : class
         {
+            // Replacing goes through the same teardown as services: the previous instance is
+            // disposed and any handlers it owned (e.g. if T was a service) are dropped.
+            if (_container.TryGetValue(typeof(T), out var previous) && !ReferenceEquals(previous, stateInstance))
+                Unregister(typeof(T));
+
             _container[typeof(T)] = stateInstance;
 #if UNITY_EDITOR
             EditorNotifyStateRegistered(typeof(T), stateInstance);
@@ -65,13 +71,6 @@ namespace Aim4code.NanoServiceFlow
         {
             Type type = typeof(T);
 
-            // Idempotent registration: re-registering replaces the previous instance and
-            // drops its handlers instead of appending a second set. Without this, a scene
-            // re-entry (e.g. game -> menu -> game) would register the service twice and
-            // every dispatched action would fire each reducer twice.
-            if (_container.ContainsKey(type))
-                Unregister(type);
-
             var constructor = type.GetConstructors().FirstOrDefault() ?? throw new Exception($"No public constructor found for {type.Name}");
 
             var parameters = constructor.GetParameters();
@@ -81,12 +80,22 @@ namespace Aim4code.NanoServiceFlow
             {
                 var paramType = parameters[i].ParameterType;
                 if (!_container.TryGetValue(paramType, out var dependency))
-                    throw new Exception($"Failed to resolve dependency '{paramType.Name}' for '{type.Name}'.");
-                
+                    throw new Exception($"Failed to resolve dependency '{paramType.Name}' for '{type.Name}'. Register '{paramType.Name}' before calling RegisterService<{type.Name}>().");
+
                 resolvedArgs[i] = dependency;
             }
 
+            // Build the new instance before touching the old one, so a missing dependency or a
+            // throwing constructor leaves the current registration intact.
             var instance = (T)constructor.Invoke(resolvedArgs);
+
+            // Idempotent registration: re-registering replaces the previous instance and
+            // drops its handlers instead of appending a second set. Without this, a scene
+            // re-entry (e.g. game -> menu -> game) would register the service twice and
+            // every dispatched action would fire each reducer twice.
+            if (_container.ContainsKey(type))
+                Unregister(type);
+
             _container[type] = instance;
             
             RegisterHandlers(instance);
@@ -95,7 +104,14 @@ namespace Aim4code.NanoServiceFlow
 #endif
         }
 
-        public static T Get<T>() => (T)_container[typeof(T)];
+        public static T Get<T>()
+        {
+            if (_container.TryGetValue(typeof(T), out var instance))
+                return (T)instance;
+
+            throw new KeyNotFoundException(
+                $"'{typeof(T).Name}' is not registered. Call RegisterState or RegisterService<{typeof(T).Name}>() before Get<{typeof(T).Name}>().");
+        }
 
         /// <summary>
         /// Initializes every registered <see cref="IInitializable"/> that has not been
@@ -189,7 +205,7 @@ namespace Aim4code.NanoServiceFlow
                             _actionHandlers[actionType] = list;
                         }
 
-                        list.Add(new HandlerEntry(service, action => method.Invoke(service, new[] { action })));
+                        list.Add(new HandlerEntry(service, action => ObserveResult(method.Invoke(service, new[] { action }))));
                         
 #if UNITY_EDITOR
                         if (!_editorActionHandlers.TryGetValue(actionType, out var editorList))
@@ -210,6 +226,30 @@ namespace Aim4code.NanoServiceFlow
             }
         }
         
+        /// <summary>
+        /// A handler returning a <see cref="Task"/> (e.g. an async side-effect) would otherwise
+        /// fault unobserved and its exception would never reach the console. Log it instead.
+        /// </summary>
+        private static void ObserveResult(object result)
+        {
+            if (!(result is Task task))
+                return;
+
+            if (task.IsCompleted)
+                LogFault(task);
+            else
+                task.ContinueWith(LogFault, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+        }
+
+        private static void LogFault(Task task)
+        {
+            if (!task.IsFaulted)
+                return;
+
+            foreach (var exception in task.Exception.Flatten().InnerExceptions)
+                UnityEngine.Debug.LogException(exception);
+        }
+
         /// <summary>
         /// Removes a registered service (or state) and any action handlers it owns.
         /// Safe to call when nothing is registered for the type.

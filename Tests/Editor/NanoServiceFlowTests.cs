@@ -4,7 +4,9 @@
 // ============================================================================
 
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -28,6 +30,7 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
         {
             private readonly MockState _state;
             public bool WasInitialized { get; private set; }
+            public MockState State => _state;
 
             // Constructor injection (State should be provided by the Locator)
             public MockService(MockState state)
@@ -62,6 +65,23 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
             public void Dispose() => throw new InvalidOperationException("boom");
         }
 
+        public class DisposableMockState : IDisposable
+        {
+            public int DisposeCount { get; private set; }
+            public void Dispose() => DisposeCount++;
+        }
+
+        public readonly struct PingAction : IAction { }
+
+        public class AsyncSideEffectService
+        {
+            // The task the side-effect hands back; tests swap it to simulate async outcomes.
+            public Task Result { get; set; } = Task.CompletedTask;
+
+            [SideEffect]
+            public Task OnPing(PingAction action) => Result;
+        }
+
         [TearDown]
         public void TearDown()
         {
@@ -82,6 +102,7 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
 
             // Assert
             Assert.IsNotNull(resolvedService, "Service should be registered and retrievable.");
+            Assert.AreSame(state, resolvedService.State, "The registered state instance should be injected.");
         }
 
         [Test]
@@ -255,6 +276,137 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
         }
 
         [Test]
+        public void RegisterState_Replacing_DisposesPreviousState()
+        {
+            // Arrange
+            var first = new DisposableMockState();
+            var second = new DisposableMockState();
+            ServiceLocator.RegisterState(first);
+
+            // Act
+            ServiceLocator.RegisterState(second);
+
+            // Assert
+            Assert.AreEqual(1, first.DisposeCount, "Replacing a state must dispose the previous instance.");
+            Assert.AreEqual(0, second.DisposeCount, "The current instance must not be disposed.");
+            Assert.AreSame(second, ServiceLocator.Get<DisposableMockState>());
+        }
+
+        [Test]
+        public void RegisterState_SameInstanceAgain_DoesNotDispose()
+        {
+            // Arrange
+            var state = new DisposableMockState();
+            ServiceLocator.RegisterState(state);
+
+            // Act
+            ServiceLocator.RegisterState(state);
+
+            // Assert
+            Assert.AreEqual(0, state.DisposeCount, "Re-registering the live instance must not dispose it.");
+        }
+
+        [Test]
+        public void RegisterState_OverAService_DropsTheServiceHandlers()
+        {
+            // Arrange
+            var state = new MockState();
+            ServiceLocator.RegisterState(state);
+            ServiceLocator.RegisterService<MockService>();
+
+            // Act: replace the service with a plain instance registered as a state.
+            var replacement = new MockService(state);
+            ServiceLocator.RegisterState(replacement);
+            ServiceLocator.Dispatch(new AddScoreAction(10));
+
+            // Assert
+            Assert.AreSame(replacement, ServiceLocator.Get<MockService>());
+            Assert.AreEqual(0, state.Score.Value,
+                "The replaced service's reducers must no longer receive dispatched actions.");
+        }
+
+        [Test]
+        public void RegisterService_WithMissingDependency_ThrowsNamingTheDependency()
+        {
+            var exception = Assert.Throws<Exception>(() => ServiceLocator.RegisterService<MockService>());
+
+            StringAssert.Contains($"Register '{nameof(MockState)}' before calling RegisterService<{nameof(MockService)}>()",
+                exception.Message, "The error should say which registration is missing.");
+        }
+
+        [Test]
+        public void RegisterService_WithMissingDependency_KeepsTheCurrentRegistration()
+        {
+            // Arrange: a working registration, then its dependency goes away.
+            var state = new MockState();
+            ServiceLocator.RegisterState(state);
+            ServiceLocator.RegisterService<MockService>();
+            var current = ServiceLocator.Get<MockService>();
+            ServiceLocator.UnregisterState<MockState>();
+
+            // Act: re-registering now fails to resolve MockState.
+            Assert.Throws<Exception>(() => ServiceLocator.RegisterService<MockService>());
+            ServiceLocator.Dispatch(new AddScoreAction(10));
+
+            // Assert
+            Assert.AreSame(current, ServiceLocator.Get<MockService>(),
+                "A failed re-registration must leave the current instance registered.");
+            Assert.AreEqual(10, state.Score.Value, "The current instance must keep its handlers.");
+        }
+
+        [Test]
+        public void UnregisterState_RemovesAndDisposesState()
+        {
+            // Arrange
+            var state = new DisposableMockState();
+            ServiceLocator.RegisterState(state);
+
+            // Act
+            ServiceLocator.UnregisterState<DisposableMockState>();
+
+            // Assert
+            Assert.IsFalse(ServiceLocator.IsRegistered<DisposableMockState>());
+            Assert.AreEqual(1, state.DisposeCount, "Unregistering an IDisposable state should dispose it once.");
+        }
+
+        [Test]
+        public void Get_WhenNotRegistered_ThrowsNamingTheType()
+        {
+            var exception = Assert.Throws<KeyNotFoundException>(() => ServiceLocator.Get<MockState>());
+
+            StringAssert.Contains($"'{nameof(MockState)}' is not registered", exception.Message,
+                "The error should name the type and say how to register it.");
+        }
+
+        [Test]
+        public void SideEffect_ReturningAFaultedTask_LogsTheException()
+        {
+            // Arrange
+            ServiceLocator.RegisterService<AsyncSideEffectService>();
+            ServiceLocator.Get<AsyncSideEffectService>().Result =
+                Task.FromException(new InvalidOperationException("side-effect boom"));
+            LogAssert.Expect(LogType.Exception, new Regex("side-effect boom"));
+
+            // Act & Assert
+            Assert.DoesNotThrow(() => ServiceLocator.Dispatch(new PingAction()),
+                "An async side-effect fault is logged, not thrown into the dispatcher.");
+        }
+
+        [Test]
+        public void SideEffect_TaskFaultingLater_LogsTheException()
+        {
+            // Arrange: the side-effect is still running when Dispatch returns.
+            var pending = new TaskCompletionSource<bool>();
+            ServiceLocator.RegisterService<AsyncSideEffectService>();
+            ServiceLocator.Get<AsyncSideEffectService>().Result = pending.Task;
+            ServiceLocator.Dispatch(new PingAction());
+            LogAssert.Expect(LogType.Exception, new Regex("late boom"));
+
+            // Act: it faults after the dispatch has finished.
+            pending.SetException(new InvalidOperationException("late boom"));
+        }
+
+        [Test]
         public void ReactiveProperty_TriggersCallback_WhenValueChanges()
         {
             // Arrange
@@ -281,6 +433,36 @@ namespace Aim4code.NanoServiceFlow.Tests.Editor
             
             // Cleanup
             subscription.Dispose();
+        }
+
+        [Test]
+        public void ReactiveProperty_Dispose_StopsDelivery()
+        {
+            var property = new ReactiveProperty<int>(0);
+            int count = 0;
+            var subscription = property.Subscribe(_ => count++);
+
+            subscription.Dispose();
+            property.Value = 1;
+
+            Assert.AreEqual(1, count, "Only the initial call on subscribe; nothing after Dispose.");
+        }
+
+        [Test]
+        public void ReactiveProperty_DisposeTwice_DoesNotRemoveOtherSubscriptions()
+        {
+            var property = new ReactiveProperty<int>(0);
+            int count = 0;
+            Action<int> callback = _ => count++;
+            var first = property.Subscribe(callback);
+            var second = property.Subscribe(callback);   // same delegate, separate subscription
+
+            first.Dispose();
+            first.Dispose();
+            property.Value = 1;
+
+            Assert.AreEqual(3, count, "Two initial calls, then the second subscription still receives the change.");
+            second.Dispose();
         }
 
         [Test]

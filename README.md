@@ -204,13 +204,12 @@ NanoServiceFlow supports a robust middleware pipeline, allowing you to intercept
 First, implement the `IMiddleware` interface:
 
 ```csharp
-using System;
 using UnityEngine;
 using Aim4code.NanoServiceFlow;
 
 public class LoggingMiddleware : IMiddleware 
 {
-    public void Invoke(IAction action, Action<IAction> next) 
+    public void Invoke(IAction action, NextActionDelegate next) 
     {
         Debug.Log($"[Dispatcher] Action Started: {action.GetType().Name}");
         
