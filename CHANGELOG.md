@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http.semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-21
+
 ### Fixed
 
 - `ServiceLocator.RegisterState<T>()` now replaces a registration the same way `RegisterService<T>()` does: the previous instance is disposed and any handlers it owned are dropped. Previously a replaced `IDisposable` state was never disposed, contrary to the 0.4.0 notes, and registering a state over a service left that service's reducers firing. Re-registering the same instance is a no-op.
